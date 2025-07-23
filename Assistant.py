@@ -1,10 +1,6 @@
 import os
-import shutil
 import requests
 import webbrowser
-import psutil
-import time
-import pyautogui
 import speech_recognition as sr
 import pyttsx3
 
@@ -34,7 +30,7 @@ def take_command():
         return ""
 
 
-def check_weather(city="Nairobi"):
+def check_weather(city):
     api_key = "7cb4fa203094ccbe0ebb6a0fa5f78d16"
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
     complete_url = f"{base_url}q={city}&appid={api_key}&units=metric"
@@ -49,6 +45,8 @@ def check_weather(city="Nairobi"):
         speak("Couldn't fetch weather data")
 
 def main():
+    # speak('Test 1')
+    # speak('Test 2')
     speak("Hi, I'm your Desktop assistant. How can I help you?")
     while True:
         command = take_command()
@@ -70,11 +68,14 @@ def main():
                 webbrowser.open("https://www.google.com")
                 speak("Opening browser")
             elif "file explorer" in command:
-                os.startfile(os.path.expanduser("~\\Documents"))
-                speak("Opening file explorer")
+                os.startfile(os.path.expanduser("~\\Desktop"))
+                speak("Opening explorer")
             elif "notepad" in command:
                 os.startfile(os.path.join(os.environ['SystemRoot'], 'system32', 'notepad.exe'))
                 speak("Opening Notepad")
+            # elif "vs code" in command:
+            #     os.startfile("C:\\Program Files\\Microsoft VS Code\\Code.exe")
+            #     speak("Opening Visual Studio Code")
             else:
                 speak("I can only open browser, file explorer, or notepad.")
                 
