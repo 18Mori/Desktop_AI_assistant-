@@ -48,3 +48,35 @@ def check_weather(city="Nairobi"):
     except:
         speak("Couldn't fetch weather data")
 
+def main():
+    speak("Hi, I'm your Desktop assistant. How can I help you?")
+    while True:
+        command = take_command()
+
+        if not command:
+            continue
+
+        if "exit" in command or "quit" in command or "stop" in command:
+            speak("Goodbye!")
+            break
+        
+        elif "weather" in command:
+            speak("Which city am I checking the weather?")
+            city = take_command()
+            if city:
+                check_weather(city)
+        elif "open" in command:
+            if "browser" in command:
+                webbrowser.open("https://www.google.com")
+                speak("Opening browser")
+            elif "file explorer" in command:
+                os.startfile(os.path.expanduser("~\\Documents"))
+                speak("Opening file explorer")
+            elif "notepad" in command:
+                os.startfile(os.path.join(os.environ['SystemRoot'], 'system32', 'notepad.exe'))
+                speak("Opening Notepad")
+            else:
+                speak("I can only open browser, file explorer, or notepad.")
+                
+if __name__ == "__main__":
+    main()
