@@ -4,13 +4,16 @@ import webbrowser
 import speech_recognition as sr
 import pyttsx3
 import random
+from datetime import datetime
+
+Assistant_name = "Morty"
 
 # Initialize the text-to-speech engine
 def speak(text):
     engine = pyttsx3.init()
     voices = engine.getProperty('voices')
     engine.setProperty('voice', voices[0].id)
-    print(f"Assistant: {text}")
+    print(f"{Assistant_name}: {text}")
     engine.say(text)
     engine.runAndWait()
 # Function => to take voice commands from the user
@@ -54,17 +57,17 @@ def check_weather(city):
         speak(f"Current weather in {city} is {weather} with temperatures {temp}°C")
 
     except:
-        speak("Couldn't fetch weather data")
+        speak("Couldn't fetch weather data! Please check the city name or try again later.")
 
 
 def main():
 
     greetings = [
-        "Hi, I'm your Desktop assistant. How can I help you?",
-        "Hello! Ready to assist you!",
-        "Hey there! What can I do for you today?",
-        "Greetings and salutations! How may I help you?",
-        "Hi! Your assistant is online."
+        f"Hi, I'm {Assistant_name} your Desktop assistant. How can I help you?",
+        f"Hello! I'm {Assistant_name}, ready to assist you!",
+        f"Hey there! I'm {Assistant_name}, what can I do for you today?",
+        f"Greetings and salutations! I'm {Assistant_name}, how may I help you?",
+        f"Hi! I'm {Assistant_name}, your desktop assistant is online."
     ]
     speak(random.choice(greetings))
 
@@ -83,17 +86,16 @@ def main():
             ]
             speak(random.choice(farewell_messages))
             break
-        elif "hello" in command or "hi" in command or "hey" in command or "greetings" in command or "wassup" in command or "ayoh" in command or "yo" in command:
+        elif "hello" in command or "hi" in command or "hey" in command or "greetings" in command or "wassup" in command or "sup" in command:
             greetings = [
                 "Hello! How can I assist you today?",
                 "Hi! Your assistant is online.",
-                "Ayoh, what's the move? Your assistant is locked in.",
+                "Sup bro, what's the move? Your assistant is locked in.",
                 "Wassup, we're officially in our assistant era. Let's get this bread."
             ]
             speak(random.choice(greetings))
         elif "time" in command:
-            from datetime import datetime
-            current_time = datetime.now().strftime("%H:%M")
+            current_time = datetime.now().strftime("%H:%M:%S")
             speak(f"The current time is {current_time}")
         elif "weather" in command:
             speak("Which city am I checking the weather?")
@@ -110,9 +112,9 @@ def main():
             elif "notepad" in command:
                 os.startfile(os.path.join(os.environ['SystemRoot'], 'system32', 'notepad.exe'))
                 speak("Opening Notepad")
-            # elif "vs code" in command:
-            #     os.startfile("C:\\Program Files\\Microsoft VS Code\\Code.exe")
-            #     speak("Opening Visual Studio Code")
+            elif "spotify" in command:
+                os.startfile("C:\\Users\\ADMIN\\AppData\\Roaming\\Spotify\\Spotify.exe")
+                speak("Opening Spotify")
             else:
                 speak("I can only open browser, file explorer, or notepad for know.")
                 
