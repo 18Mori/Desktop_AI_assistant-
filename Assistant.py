@@ -5,6 +5,8 @@ import speech_recognition as sr
 import pyttsx3
 import random
 from datetime import datetime
+import pyautogui
+import time
 
 Assistant_name = "Morty"
 
@@ -23,7 +25,6 @@ def take_command():
         print("Listening...")
         r.pause_threshold = 1
         audio = r.listen(source)
-    
     try:
         print("Processing...")
         command = r.recognize_google(audio, language='en-in').lower()
@@ -95,18 +96,31 @@ def main():
             ]
             speak(random.choice(greetings))
         elif "time" in command:
-            current_time = datetime.now().strftime("%H:%M:%S")
+            current_time = datetime.now().strftime("%H:%M")
             speak(f"The current time is {current_time}")
         elif "weather" in command:
             speak("Which city am I checking the weather?")
             city = take_command()
             if city:
                 check_weather(city)
+        elif "search" in command:
+            if "on youtube" in command:
+                speak("What do you want to search on YouTube?")
+                query = take_command()
+                if query:
+                    webbrowser.open(f"https://www.youtube.com/results?search_query={query}")
+                    speak(f"Searching for {query} on YouTube")
+                    query = take_command()
+
+            else:
+                speak("What do you want to search for?")
+                query = take_command()
+                if query:
+                    webbrowser.open(f"https://www.google.com/search?q={query}")
+                    speak(f"Searching for {query} on Google")
+            
         elif "open" in command:
-            if "browser" in command:
-                webbrowser.open("https://www.google.com")
-                speak("Opening browser")
-            elif "file explorer" in command:
+            if "file explorer" in command:
                 os.startfile(os.path.expanduser("~\\Desktop"))
                 speak("Opening explorer")
             elif "notepad" in command:
@@ -115,6 +129,14 @@ def main():
             elif "spotify" in command:
                 os.startfile("C:\\Users\\ADMIN\\AppData\\Roaming\\Spotify\\Spotify.exe")
                 speak("Opening Spotify")
+                if "play" in command:
+                    pyautogui.press("playpause")
+                    time.sleep(3)
+                    speak("Playing music on Spotify")
+                elif "pause" in command:
+                    time.sleep(3)
+                    pyautogui.press("playpause")
+                    speak("Paused music on Spotify")
             else:
                 speak("I can only open browser, file explorer, or notepad for know.")
                 
