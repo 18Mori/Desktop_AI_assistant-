@@ -24,7 +24,7 @@ def take_command():
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("Listening...")
-        r.pause_threshold = 2
+        r.pause_threshold = 1.4
         audio = r.listen(source)
     try:
         print("Processing...")
@@ -62,42 +62,55 @@ def check_weather(city):
         speak("Couldn't fetch weather data! Please check the city name or try again later.")
 def manage_files(action, *paths):
     try:
-        for path in paths:
-            if "folder" in action:
-                path = paths[0]
-                if not os.path.exists(path):
-                    speak(f"Folder {path} does not exist.")
-                    continue
-                if "create" in action:
-                    os.makedirs(path)
-                    speak(f"Folder created at {path}")
-            elif "delete" in action:
-                shutil.rmtree(path)
-                speak(f"Folder deleted from {path}")
-            elif "file" in action:
-                path = paths[0]
-                if "create" in action:
-                    open(path, 'w').close()
-                    speak(f"File created at {path}")
-            elif "delete" in action:
-                os.remove(path)
-                speak(f"File deleted from {path}")
-            elif "rename" in action:
-                old_path, new_path = paths
-                os.rename(old_path, new_path)
-                speak(f"File renamed from {old_path} to {new_path}")
-            elif "copy" in action:
-                source_path, destination_path = paths
-                source_path = os.path.join(os.path.expanduser("~"), source_path)
-                destination_path = os.path.join(os.path.expanduser("~"), destination_path)
-                shutil.copy(source_path, destination_path)
-                speak(f"File copied from {source_path} to {destination_path}")
-            elif "move" in action:
-                source_path, dest_path = paths
-                source_path = os.path.join(os.path.expanduser("~"), source_path)
-                shutil.move(source_path, dest_path)
-                speak(f"File moved from {os.path.basename(source_path)} (at {source_path}) to {dest_path}")
-        speak(f"Action '{action}' completed successfully.")
+        if "create folder" in action:
+            os.makedirs(paths[0])
+            speak(f"Folder '{os.path.basename(paths[0])}' created.")
+        elif "delete folder" in action:
+            shutil.rmtree(paths[0])
+            speak(f"Folder '{os.path.basename(paths[0])}' deleted.")
+        elif "create file" in action:
+            open(paths[0], 'w').close()
+            speak(f"File '{os.path.basename(paths[0])}' created.")
+        elif "delete file" in action:
+            os.remove(paths[0])
+            speak(f"File '{os.path.basename(paths[0])}' deleted.")
+
+
+        elif "open folder" in action:
+            os.startfile(paths[0])
+            speak(f"Opening folder...")
+            speak(f"Name: {os.path.basename(paths[0])}.")
+
+        elif "open file" in action:
+                os.startfile(paths[0])
+                speak(f"Opening file...")
+                speak(f"Name: {os.path.basename(paths[0])}.")
+
+
+        elif "rename folder" in action:
+            old_name = os.path.basename(paths[0])
+            os.rename(paths[0], paths[1])
+            speak(f"Renamed folder '{old_name}' to '{os.path.basename(paths[1])}'.")
+        elif "rename file" in action:
+            old_name = os.path.basename(paths[0])
+            os.rename(paths[0], paths[1])
+            speak(f"Renamed file '{old_name}' to '{os.path.basename(paths[1])}'.")
+        elif "copy folder" in action:
+            shutil.copytree (paths[0], paths[1])
+            speak(f"Copied folder '{old_name}' to '{paths[1]}'.")
+        elif "copy file" in action:
+            shutil.copy(paths[0], paths[1])
+            speak(f"Copied file '{old_name}' to '{paths[1]}'.")
+        elif "move folder" in action:
+            shutil.move(paths[0], paths[1])
+            speak(f"Moved folder '{old_name}' to '{paths[1]}'.")
+        elif "move file" in action:
+            shutil.move(paths[0], paths[1])
+            speak(f"Moved file '{old_name}' to '{paths[1]}'.")
+    except FileNotFoundError:
+        speak("Error: The file or folder was not found.")
+    except FileExistsError:
+        speak("Error: A file or folder with that name already exists.")
         
     except Exception as e:
         speak(f"Error: {str(e)}")
@@ -106,9 +119,9 @@ def main():
     greetings = [
         f"Hi, I'm {Assistant_name} your Desktop assistant. How can I help you?",
         f"Hello! I'm {Assistant_name}, ready to assist you!",
-        f"Hey there! I'm {Assistant_name}, what can I do for you today?",
+        f"Hi, I'm {Assistant_name}, your personal assistant. How can I help you?",
         f"Hello! I'm {Assistant_name}, how may I help you?",
-        f"Hi! I'm {Assistant_name}, your desktop assistant is online."
+        f"Hey there! I'm {Assistant_name}, what can I do for you today?"
     ]
     speak(random.choice(greetings))
 
@@ -118,20 +131,20 @@ def main():
         if not command:
             continue
 
-        if "exit" in command or "quit" in command or "stop" in command:
+        if "exit" in command or "quit" in command or "stop" in command or "that is all" in command:
             farewell_messages = [
-                "Goodbye, and have a nice day.",
-                "See you later! Take care.",
-                "Farewell! Until next time.",
-                "Catch you later! Stay safe."
+                "Have a nice day, sir",
+                "See you later! Sir.",
+                "Until next time.",
+                "Catch you later!"
             ]
             speak(random.choice(farewell_messages))
             break
-        elif "hello" in command or "hi" in command or "hey" in command or "greetings" in command or "wassup" in command or "sup" in command:
+        elif "hello" in command or "hi" in command or "hey" in command or "greetings" in command or "what's up" in command:
             greetings = [
                 "Hello! How can I assist you today?",
-                "Hi! Your assistant is online.",
-                "Sup bro, what's the move? Your assistant is locked in.",
+                "Sup bro, what's the move?",
+                "Hello, Sir! Your assistant is locked in.",
                 "Wassup, we're officially in our assistant era. Let's get this bread."
             ]
             speak(random.choice(greetings))
@@ -155,14 +168,21 @@ def main():
             speak("Folder name?")
             path = take_command().replace(" ", "_")
             manage_files("create folder", path)
+
         elif "open folder" in command:
             speak("Which folder should I open?")
             path = take_command().replace(" ", "_")
-            if os.path.exists(path):
-                os.startfile(path)
-                speak(f"Opening folder at {path}")
+            if os.path.isdir(path):
+                manage_files("open folder", path)
             else:
                 speak(f"Folder {path} does not exist.")
+        elif "open file" in command:
+            speak("Which file should I open?")
+            path = take_command().replace(" ", "_") + ".txt"
+            if os.path.isfile(path):
+                manage_files("open file", path)
+            else:
+                speak(f"File {path} does not exist.")
         # Creating files
         elif "create file" in command:
             speak("File name?")
@@ -172,7 +192,7 @@ def main():
         elif "delete folder" in command:
             speak("Which folder should I delete?")
             path = take_command().replace(" ", "_")
-            if os.path.exists(path):
+            if os.path.isdir(path):
                 manage_files("delete folder", path)
             else:
                 speak(f"Folder {path} does not exist.")
@@ -181,7 +201,7 @@ def main():
             speak("Which file should I delete?")
             path = take_command().replace(" ", "_") + ".txt"
             
-            if os.path.exists(path):
+            if os.path.isfile(path):
                 manage_files("delete file", path)
             else:
                 speak(f"File {path} does not exist.")
@@ -189,36 +209,87 @@ def main():
         elif "copy file" in command:
             speak("What is the file name to copy?")
             source_path = take_command().replace(" ", "_") + ".txt"
-            if os.path.exists(source_path):
-                speak("Where should I copy it to?")
-                destination_path = take_command().replace(" ", "_") + ".txt"
-                manage_files("copy file", source_path, destination_path)
-            else:
-                speak(f"File {source_path} does not exist.")
+            if not os.path.isfile(source_path):
+                speak(f"File '{source_path}' does not exist.")
+                continue
+
+            speak("Where should I copy it to? Please specify the destination folder.")
+            dest_folder = take_command().replace(" ", "_")
+            if not os.path.isdir(dest_folder):
+                speak(f"Destination folder '{dest_folder}' does not exist or is not a directory.")
+                continue
+            manage_files("copy file", source_path, dest_folder)
+        # Copying folders
+        elif "copy folder" in command:
+            speak("What is the folder name to copy?")
+            source_path = take_command().replace(" ", "_")
+            if not os.path.isdir(source_path):
+                speak(f"Folder '{source_path}' does not exist.")
+                continue
+
+            speak("Where should I copy it to? Please specify the destination folder.")
+            dest_folder = take_command().replace(" ", "_")
+            if not os.path.isdir(dest_folder):
+                speak(f"Destination folder '{dest_folder}' does not exist or is not a directory.")
+                continue
+            manage_files("copy folder", source_path, dest_folder)
         # Renaming files
         elif "rename file" in command:
+            speak("What is the current file name, to rename?")
             old_path = take_command().replace(" ", "_") + ".txt"
         
-            if not os.path.exists(old_path):
-                speak(f"File {old_path} does not found.")
+            if not os.path.isfile(old_path):
+                speak(f"File {old_path} is not found.")
                 continue
 
             speak(f"What should I rename it to?")
             new_path = take_command().replace(" ", "_") + ".txt"
+            if os.path.exists(new_path):
+                speak(f"A file or folder named '{new_path}' already exists. Please choose a different name.")
+                continue
             manage_files("rename file", old_path, new_path)
+        # Renaming folders
+        elif "rename folder" in command:
+            speak("What is the current folder name, to rename?")
+            old_path = take_command().replace(" ", "_")
+        
+            if not os.path.isdir(old_path):
+                speak(f"Folder {old_path} is not found.")
+                continue
+
+            speak(f"What should I rename it to?")
+            new_path = take_command().replace(" ", "_")
+            if os.path.exists(new_path):
+                speak(f"A file or folder named '{new_path}' already exists. Please choose a different name.")
+                continue
+            manage_files("rename folder", old_path, new_path)
         # Moving files
         elif "move file" in command:
             speak("What is the file name to move?")
             source_path = take_command().replace(" ", "_") + ".txt"
-            if not os.path.exists(source_path):
-                speak(f"{source_path} does not found")
+            if not os.path.isfile(source_path):
+                speak(f"{source_path} is not found")
                 continue
-            speak("Where should I move it to? Please specify path.")
+            speak("Where should I move it to? Please specify the destination of folder.")
             dest_folder = take_command().replace(" ", "_")
             if not os.path.isdir(dest_folder):
-                speak(f"Destination folder {dest_folder} not found or not path.")
+                speak(f"Destination folder {dest_folder} is not found or not a destination.")
                 continue
             manage_files("move file", source_path, dest_folder)
+        # Moving folders
+        elif "move folder" in command:
+            speak("What is the folder name, to move?")
+            source_path = take_command().replace(" ", "_")
+            if not os.path.isdir(source_path):
+                speak(f"{source_path} is not found")
+                continue
+            speak("Where should I move it to? Please specify it's destination.")
+            dest_folder = take_command().replace(" ", "_")
+            if not os.path.isdir(dest_folder):
+                speak(f"Destination folder {dest_folder} is not found or not a destination.")
+                continue
+            manage_files("move folder", source_path, dest_folder)
+
 
         elif "search" in command:
             if "on youtube" in command:
