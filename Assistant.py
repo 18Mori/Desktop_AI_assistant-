@@ -7,6 +7,7 @@ import random
 from datetime import datetime
 import pyautogui
 import time
+import shutil
 
 Assistant_name = "Morty"
 
@@ -23,7 +24,7 @@ def take_command():
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("Listening...")
-        r.pause_threshold = 1
+        r.pause_threshold = 2
         audio = r.listen(source)
     try:
         print("Processing...")
@@ -59,15 +60,31 @@ def check_weather(city):
 
     except:
         speak("Couldn't fetch weather data! Please check the city name or try again later.")
-
+def manage_files(action, path):
+    try:
+        if "folder" in action:
+            if "create" in action:
+                os.makedirs(path)
+                speak(f"Folder created at {path}")
+            elif "delete" in action:
+                shutil.rmtree(path)
+                speak(f"Folder deleted from {path}")
+        elif "file" in action:
+            if "create" in action:
+                open(path, 'w').close()
+                speak(f"File created at {path}")
+            elif "delete" in action:
+                os.remove(path)
+                speak(f"File deleted from {path}")
+    except Exception as e:
+        speak(f"Error: {str(e)}")
 
 def main():
-
     greetings = [
         f"Hi, I'm {Assistant_name} your Desktop assistant. How can I help you?",
         f"Hello! I'm {Assistant_name}, ready to assist you!",
         f"Hey there! I'm {Assistant_name}, what can I do for you today?",
-        f"Greetings and salutations! I'm {Assistant_name}, how may I help you?",
+        f"Hello! I'm {Assistant_name}, how may I help you?",
         f"Hi! I'm {Assistant_name}, your desktop assistant is online."
     ]
     speak(random.choice(greetings))
@@ -95,6 +112,7 @@ def main():
                 "Wassup, we're officially in our assistant era. Let's get this bread."
             ]
             speak(random.choice(greetings))
+                
         elif "time" in command:
             current_time = datetime.now().strftime("%H:%M")
             speak(f"The current time is {current_time}")
@@ -103,6 +121,23 @@ def main():
             city = take_command()
             if city:
                 check_weather(city)
+        # File management
+        elif "create folder" in command:
+            speak("Folder name?")
+            path = take_command().replace(" ", "_")
+            manage_files("create folder", path)
+        elif "create file" in command:
+            speak("File name?")
+            path = take_command().replace(" ", "_") + ".txt"
+            manage_files("create file", path)
+        elif "delete folder" in command:
+            speak("Which folder should I delete?")
+            path = take_command()
+            manage_files("delete folder", path)
+        elif "delete file" in command:
+            speak("Which file should I delete?")
+            path = take_command()
+            manage_files("delete file", path)
         elif "search" in command:
             if "on youtube" in command:
                 speak("What do you want to search on YouTube?")
