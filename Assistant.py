@@ -60,22 +60,45 @@ def check_weather(city):
 
     except:
         speak("Couldn't fetch weather data! Please check the city name or try again later.")
-def manage_files(action, path):
+def manage_files(action, *paths):
     try:
-        if "folder" in action:
-            if "create" in action:
-                os.makedirs(path)
-                speak(f"Folder created at {path}")
+        for path in paths:
+            if "folder" in action:
+                path = paths[0]
+                if not os.path.exists(path):
+                    speak(f"Folder {path} does not exist.")
+                    continue
+                if "create" in action:
+                    os.makedirs(path)
+                    speak(f"Folder created at {path}")
             elif "delete" in action:
                 shutil.rmtree(path)
                 speak(f"Folder deleted from {path}")
-        elif "file" in action:
-            if "create" in action:
-                open(path, 'w').close()
-                speak(f"File created at {path}")
+            elif "file" in action:
+                path = paths[0]
+                if "create" in action:
+                    open(path, 'w').close()
+                    speak(f"File created at {path}")
             elif "delete" in action:
                 os.remove(path)
                 speak(f"File deleted from {path}")
+            elif "rename" in action:
+                old_path, new_path = paths
+                os.rename(old_path, new_path)
+                speak(f"File renamed from {old_path} to {new_path}")
+            elif "copy" in action:
+                source_path, destination_path = paths
+                source_path = os.path.join(os.path.expanduser("~"), source_path)
+                destination_path = os.path.join(os.path.expanduser("~"), destination_path)
+                shutil.copy(source_path, destination_path)
+                speak(f"File copied from {source_path} to {destination_path}")
+            elif "move" in action:
+                source_path, dest_path = paths
+                source_path = os.path.join(os.path.expanduser("~"), source_path)
+                shutil.move(source_path, dest_path)
+                speak(f"File moved from {os.path.basename(source_path)} (at {source_path}) to {dest_path}")
+        speak(f"Action '{action}' completed successfully.")
+        
     except Exception as e:
         speak(f"Error: {str(e)}")
 
@@ -121,23 +144,82 @@ def main():
             city = take_command()
             if city:
                 check_weather(city)
+
+        elif "date" in command:
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            speak(f"Today's date is {current_date}")
+
+
         # File management
         elif "create folder" in command:
             speak("Folder name?")
             path = take_command().replace(" ", "_")
             manage_files("create folder", path)
+        elif "open folder" in command:
+            speak("Which folder should I open?")
+            path = take_command().replace(" ", "_")
+            if os.path.exists(path):
+                os.startfile(path)
+                speak(f"Opening folder at {path}")
+            else:
+                speak(f"Folder {path} does not exist.")
+        # Creating files
         elif "create file" in command:
             speak("File name?")
             path = take_command().replace(" ", "_") + ".txt"
             manage_files("create file", path)
+        # Deleting folders
         elif "delete folder" in command:
             speak("Which folder should I delete?")
-            path = take_command()
-            manage_files("delete folder", path)
+            path = take_command().replace(" ", "_")
+            if os.path.exists(path):
+                manage_files("delete folder", path)
+            else:
+                speak(f"Folder {path} does not exist.")
+        # Deleting files
         elif "delete file" in command:
             speak("Which file should I delete?")
-            path = take_command()
-            manage_files("delete file", path)
+            path = take_command().replace(" ", "_") + ".txt"
+            
+            if os.path.exists(path):
+                manage_files("delete file", path)
+            else:
+                speak(f"File {path} does not exist.")
+        # Copying files
+        elif "copy file" in command:
+            speak("What is the file name to copy?")
+            source_path = take_command().replace(" ", "_") + ".txt"
+            if os.path.exists(source_path):
+                speak("Where should I copy it to?")
+                destination_path = take_command().replace(" ", "_") + ".txt"
+                manage_files("copy file", source_path, destination_path)
+            else:
+                speak(f"File {source_path} does not exist.")
+        # Renaming files
+        elif "rename file" in command:
+            old_path = take_command().replace(" ", "_") + ".txt"
+        
+            if not os.path.exists(old_path):
+                speak(f"File {old_path} does not found.")
+                continue
+
+            speak(f"What should I rename it to?")
+            new_path = take_command().replace(" ", "_") + ".txt"
+            manage_files("rename file", old_path, new_path)
+        # Moving files
+        elif "move file" in command:
+            speak("What is the file name to move?")
+            source_path = take_command().replace(" ", "_") + ".txt"
+            if not os.path.exists(source_path):
+                speak(f"{source_path} does not found")
+                continue
+            speak("Where should I move it to? Please specify path.")
+            dest_folder = take_command().replace(" ", "_")
+            if not os.path.isdir(dest_folder):
+                speak(f"Destination folder {dest_folder} not found or not path.")
+                continue
+            manage_files("move file", source_path, dest_folder)
+
         elif "search" in command:
             if "on youtube" in command:
                 speak("What do you want to search on YouTube?")
