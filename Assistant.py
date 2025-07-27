@@ -8,6 +8,8 @@ from datetime import datetime
 import pyautogui
 import time
 import shutil
+import psutil
+import hashlib
 
 Assistant_name = "Morty"
 
@@ -134,6 +136,94 @@ def manage_files(action, *paths):
     except Exception as e:
         speak(f"Error: {str(e)}")
 
+def system_monitor():
+    cpu_usage = psutil.cpu_percent()
+    ram = psutil.virtual_memory()
+    ram_usage = ram.percent
+
+    status = f"\rCPU Usage: {cpu_usage}%, RAM Usage: {ram_usage}%"
+    if cpu_usage > 80 or ram_usage > 80:
+        status = "WARNING! "+ status
+        speak(status)
+    
+def take_screenshot():
+    timespent = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"screenshot_{timespent}.png"
+    pyautogui.screenshot(filename)
+    speak(f"Screenshot taken as {filename}")
+
+def _calculate_hash(filepath, chunk_size=8192):
+    # Helper function to calculate SHA256 hash of a file
+    h = hashlib.sha256()
+    try:
+        with open(filepath, "rb") as f:
+            while True:
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                h.update(chunk)
+        return h.hexdigest()
+    except (IOError, OSError):
+        # Could be a permissions error or file disappeared during scan
+        return None
+
+def find_duplicate_files(directory):
+    if not os.path.isdir(directory):
+        speak(f"Error!!: The directory '{directory}' does not exist.")
+        return
+
+    speak(f"Scanning for duplicate files in '{directory}'.")
+    speak("This may take a moment...")
+    hashes = {}
+    for dirpath, _, filenames in os.walk(directory):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            file_hash = _calculate_hash(filepath)
+            if file_hash:
+                if file_hash in hashes:
+                    hashes[file_hash].append(filepath)
+                else:
+                    hashes[file_hash] = [filepath]
+
+    duplicates = {k: v for k, v in hashes.items() if len(v) > 1}
+    
+    if not duplicates:
+        speak("No duplicate files found.")
+    else:
+        speak(f"Found {len(duplicates)} sets of duplicate files.")
+        for i, (file_list) in enumerate(duplicates.values()):
+            speak(f"Set {i + 1}:")
+            for f_path in file_list:
+                speak(f"  - {os.path.basename(f_path)} located in {os.path.dirname(f_path)}")
+    speak("Scan complete.")
+
+def find_large_files(directory, min_size_mb=100):
+    if not os.path.isdir(directory):
+        speak(f"Error!!: The directory '{directory}' does not exist.")
+        return
+
+    speak(f"Scanning for files larger than {min_size_mb} MB in '{directory}'...")
+    large_files = []
+    min_size_bytes = min_size_mb * 1024 * 1024
+    for dirpath, _, filenames in os.walk(directory):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            try:
+                file_size = os.path.getsize(filepath)
+                if file_size > min_size_bytes:
+                    large_files.append((filepath, file_size / (1024 * 1024)))
+            except (IOError, OSError):
+                continue
+    
+    if not large_files:
+        speak(f"No files larger than {min_size_mb} MB found.")
+    else:
+        speak(f"Found {len(large_files)} files larger than {min_size_mb} MB.")
+        large_files.sort(key=lambda x: x[1], reverse=True)
+        for f_path, f_size_mb in large_files:
+            speak(f"  - {os.path.basename(f_path)} - {f_size_mb:.2f} MB")
+    speak("Scan complete.")
+
 def main():
     greetings = [
         f"Hi, I'm {Assistant_name} your Desktop assistant. How can I help you?",
@@ -182,6 +272,10 @@ def main():
             current_date = datetime.now().strftime("%Y-%m-%d")
             speak(f"Today's date is {current_date}")
 
+        elif "system monitor" in command or "system status" in command:
+            speak("Checking system status...")
+            system_monitor()
+            speak("System status check, complete.")
 
         # File management
         elif "create folder" in command:
@@ -347,6 +441,72 @@ def main():
                     speak("Paused music on Spotify")
             else:
                 speak("I can only open browser, file explorer, or notepad for know.")
+
+        elif "restart" in command:
+            speak("Are you sure you want to restart the computer? (yes/no)")
+            confirmation = take_command().lower()
+            if "yes" in confirmation:
+                speak("Restarting the computer.")
+                os.system("shutdown /r /t 1")
+            else:
+                speak("Restart cancelled.")
+        elif "shutdown" in command:
+            speak("Are you sure you want to shut down the computer? (yes/no)")
+            confirmation = take_command().lower()
+            if "yes" in confirmation:
+                speak("Shutting down the computer.")
+                os.system("shutdown /s /t 1")
+            else:
+                speak("Shutdown cancelled.")
+
+        elif "screenshot" in command:
+            take_screenshot()
+
+            # File scanning
+        elif "duplicate files" in command:
+            speak("Which directory should I scan for duplicate files?")
+            speak("For example, say 'Desktop' or 'Documents'.")
+            scan_dir_input = take_command()
+            if scan_dir_input:
+                scan_dir = ""
+                if "desktop" in scan_dir_input:
+                    scan_dir = os.path.expanduser("~\\Desktop")
+                elif "documents" in scan_dir_input:
+                    scan_dir = os.path.expanduser("~\\Documents")
+                else:
+                    scan_dir = scan_dir_input
+                
+                if os.path.isdir(scan_dir):
+                    find_duplicate_files(scan_dir)
+                else:
+                    speak(f"Sorry, I couldn't find the directory '{scan_dir}'.")
+            else:
+                speak("I didn't catch the directory name. Please try again.")
+
+        elif "large files" in command:
+            speak("Which directory should I scan?")
+            speak("For example, say 'Desktop' or 'Documents'.")
+            scan_dir_input = take_command()
+            if not scan_dir_input:
+                speak("I didn't catch the directory name. Please try again.")
+                continue
+            
+            scan_dir = ""
+            if "desktop" in scan_dir_input:
+                scan_dir = os.path.expanduser("~\\Desktop")
+            elif "documents" in scan_dir_input:
+                scan_dir = os.path.expanduser("~\\Documents")
+            # else:
+            #     scan_dir = scan_dir_input
+
+            # speak("What is the minimum file size in MB? For example, say '100'.")
+            # size_str = take_command()
+            # try:
+            #     min_size = int(size_str)
+            #     find_large_files(scan_dir, min_size)
+            # except (ValueError, TypeError):
+            #     speak(f"That doesn't seem like a valid number. Using the default of 100 MB.")
+            #     find_large_files(scan_dir)
                 
 if __name__ == "__main__":
     main()
