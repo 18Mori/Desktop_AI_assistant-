@@ -172,7 +172,8 @@ def find_duplicate_files(directory):
         speak(f"Error!!: The directory '{directory}' does not exist.")
         return
 
-    speak(f"Scanning for duplicate files in '{directory}'.")
+    speak(f"Scanning for duplicate files...")
+    print(f"in '{directory}'")
     speak("This may take a moment...")
     hashes = {}
     for dirpath, _, filenames in os.walk(directory):
@@ -194,7 +195,8 @@ def find_duplicate_files(directory):
         for i, (file_list) in enumerate(duplicates.values()):
             speak(f"Set {i + 1}:")
             for f_path in file_list:
-                speak(f"  - {os.path.basename(f_path)} located in {os.path.dirname(f_path)}")
+                speak(f"  - {os.path.basename(f_path)}")
+                print(f"located in {os.path.dirname(f_path)}")
     speak("Scan complete.")
 
 def find_large_files(directory, min_size_mb=100):
@@ -442,37 +444,45 @@ def main():
             else:
                 speak("I can only open browser, file explorer, or notepad for know.")
 
-        elif "restart" in command:
-            speak("Are you sure you want to restart the computer? (yes/no)")
-            confirmation = take_command().lower()
-            if "yes" in confirmation:
-                speak("Restarting the computer.")
-                os.system("shutdown /r /t 1")
-            else:
-                speak("Restart cancelled.")
-        elif "shutdown" in command:
-            speak("Are you sure you want to shut down the computer? (yes/no)")
-            confirmation = take_command().lower()
-            if "yes" in confirmation:
-                speak("Shutting down the computer.")
-                os.system("shutdown /s /t 1")
-            else:
-                speak("Shutdown cancelled.")
+        # elif "restart" in command:
+        #     speak("Are you sure you want to restart the computer? (yes/no)")
+        #     confirmation = take_command().lower()
+        #     if "yes" in confirmation:
+        #         speak("Restarting the computer.")
+        #         os.system("shutdown /r /t 1")
+        #     else:
+        #         speak("Restart cancelled.")
+        # elif "shutdown" in command:
+        #     speak("Are you sure you want to shut down the computer? (yes/no)")
+        #     confirmation = take_command().lower()
+        #     if "yes" in confirmation:
+        #         speak("Shutting down the computer.")
+        #         os.system("shutdown /s /t 1")
+        #     else:
+        #         speak("Shutdown cancelled.")
 
         elif "screenshot" in command:
             take_screenshot()
 
             # File scanning
-        elif "duplicate files" in command:
+        elif "find duplicate file" in command:
             speak("Which directory should I scan for duplicate files?")
-            speak("For example, say 'Desktop' or 'Documents'.")
+            print("Say 'Desktop','Documents','Downloads','Pictures','Videos','Music'.")
             scan_dir_input = take_command()
             if scan_dir_input:
                 scan_dir = ""
                 if "desktop" in scan_dir_input:
-                    scan_dir = os.path.expanduser("~\\Desktop")
+                    scan_dir = os.path.expanduser("~\\OneDrive\\Desktop")
                 elif "documents" in scan_dir_input:
-                    scan_dir = os.path.expanduser("~\\Documents")
+                    scan_dir = os.path.expanduser("~\\OneDrive\\Documents")
+                elif "downloads" in scan_dir_input:
+                    scan_dir = os.path.expanduser("~\\OneDrive\\Downloads")
+                elif "pictures" in scan_dir_input:
+                    scan_dir = os.path.expanduser("~\\OneDrive\\Pictures")
+                elif "videos" in scan_dir_input:
+                    scan_dir = os.path.expanduser("~\\OneDrive\\Videos")
+                elif "music" in scan_dir_input:
+                    scan_dir = os.path.expanduser("~\\OneDrive\\Music")
                 else:
                     scan_dir = scan_dir_input
                 
@@ -482,10 +492,9 @@ def main():
                     speak(f"Sorry, I couldn't find the directory '{scan_dir}'.")
             else:
                 speak("I didn't catch the directory name. Please try again.")
-
-        elif "large files" in command:
-            speak("Which directory should I scan?")
-            speak("For example, say 'Desktop' or 'Documents'.")
+        elif "find large file" in command:
+            speak("Which directory should I scan for large files?")
+            print("Say 'Desktop','Documents','Downloads','Pictures','Videos','Music'.")
             scan_dir_input = take_command()
             if not scan_dir_input:
                 speak("I didn't catch the directory name. Please try again.")
@@ -493,20 +502,30 @@ def main():
             
             scan_dir = ""
             if "desktop" in scan_dir_input:
-                scan_dir = os.path.expanduser("~\\Desktop")
-            elif "documents" in scan_dir_input:
-                scan_dir = os.path.expanduser("~\\Documents")
-            # else:
-            #     scan_dir = scan_dir_input
+                scan_dir = os.path.expanduser("~\\OneDrive\\Desktop")
+            elif "document" in scan_dir_input:
+                scan_dir = os.path.expanduser("~\\OneDrive\\Documents")
+            elif "download" in scan_dir_input:
+                scan_dir = os.path.expanduser("~\\OneDrive\\Downloads")
+            elif "picture" in scan_dir_input:
+                scan_dir = os.path.expanduser("~\\OneDrive\\Pictures")
+            elif "video" in scan_dir_input:
+                scan_dir = os.path.expanduser("~\\OneDrive\\Videos")
+            elif "music" in scan_dir_input:
+                scan_dir = os.path.expanduser("~\\OneDrive\\Music")
+            else:
+                scan_dir = scan_dir_input
+            if not os.path.isdir(scan_dir):
+                speak(f"Sorry, I couldn't find the directory '{scan_dir}'.")
+                continue
+            speak("What is the minimum file size in MB?")
 
-            # speak("What is the minimum file size in MB? For example, say '100'.")
-            # size_str = take_command()
-            # try:
-            #     min_size = int(size_str)
-            #     find_large_files(scan_dir, min_size)
-            # except (ValueError, TypeError):
-            #     speak(f"That doesn't seem like a valid number. Using the default of 100 MB.")
-            #     find_large_files(scan_dir)
+            size_str = input("Enter minimum file size in MB (default is 100MB): ").strip()
+            try:
+                min_size = int(size_str)
+                find_large_files(scan_dir, min_size)
+            except (ValueError, TypeError):
+                find_large_files(scan_dir)
                 
 if __name__ == "__main__":
     main()
