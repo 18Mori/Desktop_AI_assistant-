@@ -443,23 +443,49 @@ def main():
                     speak("Paused music on Spotify")
             else:
                 speak("I can only open browser, file explorer, or notepad for know.")
+        # Calculator and system commands
+        elif "calculator" in command:
+            os.startfile(os.path.join(os.environ['SystemRoot'], 'system32', 'calc.exe'))
+            speak("Opening Calculator")
+        elif "command prompt" in command or "cmd" in command:
+            os.startfile(os.path.join(os.environ['SystemRoot'], 'system32', 'cmd.exe'))
+            speak("Opening Command Prompt")
+        elif "task manager" in command:
+            os.startfile(os.path.join(os.environ['SystemRoot'], 'system32', 'Taskmgr.exe'))
+            speak("Opening Task Manager")
 
-        # elif "restart" in command:
-        #     speak("Are you sure you want to restart the computer? (yes/no)")
-        #     confirmation = take_command().lower()
-        #     if "yes" in confirmation:
-        #         speak("Restarting the computer.")
-        #         os.system("shutdown /r /t 1")
-        #     else:
-        #         speak("Restart cancelled.")
-        # elif "shutdown" in command:
-        #     speak("Are you sure you want to shut down the computer? (yes/no)")
-        #     confirmation = take_command().lower()
-        #     if "yes" in confirmation:
-        #         speak("Shutting down the computer.")
-        #         os.system("shutdown /s /t 1")
-        #     else:
-        #         speak("Shutdown cancelled.")
+        elif "restart" in command:
+            speak("Are you sure you want to restart the computer? (yes/no)")
+            confirmation = take_command().lower()
+            if "yes" in confirmation:
+                speak("Restarting the computer.")
+                os.system("shutdown /r /t 1")
+            else:
+                speak("Restart cancelled.")
+        elif "hibernate" in command:
+            speak("Are you sure you want to hibernate the computer? (yes/no)")
+            confirmation = take_command().lower()
+            if "yes" in confirmation:
+                speak("Hibernating the computer.")
+                os.system("shutdown /h")
+            else:
+                speak("Hibernate cancelled.")
+        elif "sleep" in command:
+            speak("Are you sure you want to put the computer to sleep? (yes/no)")
+            confirmation = take_command().lower()
+            if "yes" in confirmation:
+                speak("Putting the computer to sleep.")
+                os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+            else:
+                speak("Sleep cancelled.")
+        elif "shutdown" in command:
+            speak("Are you sure you want to shut down the computer? (yes/no)")
+            confirmation = take_command().lower()
+            if "yes" in confirmation:
+                speak("Shutting down the computer.")
+                os.system("shutdown /s /t 1")
+            else:
+                speak("Shutdown cancelled.")
 
         elif "screenshot" in command:
             take_screenshot()
