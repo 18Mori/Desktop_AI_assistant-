@@ -199,6 +199,18 @@ def find_duplicate_files(directory):
                 print(f"located in {os.path.dirname(f_path)}")
     speak("Scan complete.")
 
+def close_application(app_name):
+    # Close an application by its name
+    try:
+        for proc in psutil.process_iter(['name']):
+            if proc.info['name'].lower() == app_name.lower():
+                proc.terminate()
+                speak(f"Closed {app_name}.")
+                return
+        speak(f"No application named '{app_name}' is running.")
+    except Exception as e:
+        speak(f"Error closing application: {str(e)}")
+
 def find_large_files(directory, min_size_mb=100):
     if not os.path.isdir(directory):
         speak(f"Error!!: The directory '{directory}' does not exist.")
@@ -442,7 +454,20 @@ def main():
                     pyautogui.press("playpause")
                     speak("Paused music on Spotify")
             else:
-                speak("I can only open browser, file explorer, or notepad for know.")
+                speak("I can only open browser, file explorer, or notepad for now.")
+                continue
+            # Closing applications
+        elif "close" in command:
+            if "notepad" in command:
+                close_application("notepad.exe")
+            elif "calculator" in command:
+                close_application("calc.exe")
+            elif "command prompt" in command or "cmd" in command:
+                close_application("cmd.exe")
+            else:
+                speak("I can only close Notepad, Calculator, and Command Prompt, for now.")
+                continue
+
         # Calculator and system commands
         elif "calculator" in command:
             os.startfile(os.path.join(os.environ['SystemRoot'], 'system32', 'calc.exe'))
