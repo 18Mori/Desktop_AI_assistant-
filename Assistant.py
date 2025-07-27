@@ -251,7 +251,7 @@ def main():
             ]
             speak(random.choice(farewell_messages))
             break
-        elif "hello" in command or "hi" in command or "hey" in command or "greetings" in command or "what's up" in command:
+        elif "hello" in command or "hey" in command or "greetings" in command or "what's up" in command:
             greetings = [
                 "Hello! How can I assist you today?",
                 "Sup bro, what's the move?",
@@ -459,7 +459,7 @@ def main():
             confirmation = take_command().lower()
             if "yes" in confirmation:
                 speak("Restarting the computer.")
-                os.system("shutdown /r /t 1")
+                os.system(f"{os.path.join(os.environ['SystemRoot'], 'system32', 'shutdown.exe')} /r /t 1")
             else:
                 speak("Restart cancelled.")
         elif "hibernate" in command:
@@ -467,7 +467,7 @@ def main():
             confirmation = take_command().lower()
             if "yes" in confirmation:
                 speak("Hibernating the computer.")
-                os.system("shutdown /h")
+                os.system(f"{os.path.join(os.environ['SystemRoot'], 'system32', 'shutdown.exe')} /h")
             else:
                 speak("Hibernate cancelled.")
         elif "sleep" in command:
@@ -475,15 +475,31 @@ def main():
             confirmation = take_command().lower()
             if "yes" in confirmation:
                 speak("Putting the computer to sleep.")
-                os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+                os.system(f"{os.path.join(os.environ['SystemRoot'], 'system32', 'rundll32.exe')} powrprof.dll,SetSuspendState 0,1,0")
             else:
                 speak("Sleep cancelled.")
-        elif "shutdown" in command:
+        elif "log off" in command:
+            speak("Are you sure you want to log off? (yes/no)")
+            confirmation = take_command().lower()
+            if "yes" in confirmation:
+                speak("Logging off the computer.")
+                os.system(f"{os.path.join(os.environ['SystemRoot'], 'system32', 'shutdown.exe')} /l")
+            else:
+                speak("Log off cancelled.")
+        elif "lock" in command:
+            speak("Are you sure you want to lock the computer? (yes/no)")
+            confirmation = take_command().lower()
+            if "yes" in confirmation:
+                speak("Locking the computer.")
+                os.system(f"{os.path.join(os.environ['SystemRoot'], 'system32', 'rundll32.exe')} user32.dll,LockWorkStation")
+            else:
+                speak("Lock cancelled.")
+        elif "shut down" in command:
             speak("Are you sure you want to shut down the computer? (yes/no)")
             confirmation = take_command().lower()
             if "yes" in confirmation:
                 speak("Shutting down the computer.")
-                os.system("shutdown /s /t 1")
+                os.system(f"{os.path.join(os.environ['SystemRoot'], 'system32', 'shutdown.exe')} /s /t 1")
             else:
                 speak("Shutdown cancelled.")
 
