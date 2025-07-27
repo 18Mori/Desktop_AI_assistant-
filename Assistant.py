@@ -61,19 +61,38 @@ def check_weather(city):
     except:
         speak("Couldn't fetch weather data! Please check the city name or try again later.")
 def manage_files(action, *paths):
+    # confirming for folder deletion
+    def confirmation_act1():
+        speak(f"Are you sure you want to delete '{os.path.basename(paths[0])}'? (yes/no)")
+        confirmation = take_command().lower()
+        return "yes" in confirmation.lower()
+    # confirmation for file deletion
+    def confirmation_act2(path):
+        speak(f"Are you sure you want to delete '{os.path.basename(path)}'? (yes/no)")
+        confirmation = take_command().lower()
+        return "yes" in confirmation.lower()
+        
+    
     try:
         if "create folder" in action:
-            os.makedirs(paths[0])
             speak(f"Folder '{os.path.basename(paths[0])}' created.")
+            os.makedirs(paths[0])
         elif "delete folder" in action:
+            if not confirmation_act1():
+                speak("Folder deletion cancelled.")
+                return
             shutil.rmtree(paths[0])
             speak(f"Folder '{os.path.basename(paths[0])}' deleted.")
+            
         elif "create file" in action:
             open(paths[0], 'w').close()
             speak(f"File '{os.path.basename(paths[0])}' created.")
         elif "delete file" in action:
-            os.remove(paths[0])
             speak(f"File '{os.path.basename(paths[0])}' deleted.")
+            os.remove(paths[0])
+            if not confirmation_act2("file", paths[0]):
+                speak("File deletion cancelled.")
+                return
 
 
         elif "open folder" in action:
@@ -144,14 +163,15 @@ def main():
             greetings = [
                 "Hello! How can I assist you today?",
                 "Sup bro, what's the move?",
-                "Hello, Sir! Your assistant is locked in.",
-                "Wassup, we're officially in our assistant era. Let's get this bread."
+                "Hello, locked in, Sir.",
+                "Hey there! What can I do for you?"
             ]
             speak(random.choice(greetings))
                 
         elif "time" in command:
             current_time = datetime.now().strftime("%H:%M")
             speak(f"The current time is {current_time}")
+
         elif "weather" in command:
             speak("Which city am I checking the weather?")
             city = take_command()
